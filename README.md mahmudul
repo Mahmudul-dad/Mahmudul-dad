@@ -1,13 +1,108 @@
- Hi, I’m @Mahmudul-dad
-- 👀 I’m interested in ...
-- 🌱 I’m currently learning ...
-- 💞️ I’m looking to collaborate on ...
-- 📫 How to reach me ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
-- change my mind this time
 
-<!---
-Mahmudul-dad/Mahmudul-dad is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-You can click the Preview link to take a look at your changes.
---->
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator & Crazy Time Game System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+        }
+        #main {
+            flex: 3;
+            padding: 20px;
+        }
+        #sidebar {
+            flex: 1;
+            padding: 20px;
+            background-color: #f0f0f0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .result {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <h1>Game Result Calculator</h1>
+        <form id="gameForm">
+            <label for="serverSeed">Server Seed:</label>
+            <input type="text" id="serverSeed" required><br><br>
+
+            <label for="clientSeed">Client Seed:</label>
+            <input type="text" id="clientSeed" required><br><br>
+
+            <label for="round">Round Number:</label>
+            <input type="number" id="round" required><br><br>
+
+            <button type="submit">Get Aviator Result</button>
+            <button type="button" id="crazyTimeBtn">Get Crazy Time Result</button>
+        </form>
+
+        <h2>Current Game Result:</h2>
+        <p id="resultOutput"></p>
+    </div>
+
+    <div id="sidebar">
+        <h2>Previous Results</h2>
+        <div id="previousResults"></div>
+    </div>
+
+    <script>
+        document.getElementById('gameForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            calculateGameResult('aviator');
+        });
+
+        document.getElementById('crazyTimeBtn').addEventListener('click', function () {
+            calculateGameResult('crazytime');
+        });
+
+        function calculateGameResult(gameType) {
+            const serverSeed = document.getElementById('serverSeed').value;
+            const clientSeed = document.getElementById('clientSeed').value;
+            const round = document.getElementById('round').value;
+
+            const combinedSeed = serverSeed + clientSeed + round;
+
+            async function generateHash(seed) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(seed);
+                const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            generateHash(combinedSeed).then(hash => {
+                let gameResult;
+                if (gameType === 'aviator') {
+                    const hashDecimal = parseInt(hash.substring(0, 8), 16);
+                    gameResult = (hashDecimal % 10000) / 100;
+                } else if (gameType === 'crazytime') {
+                    const hashDecimal = parseInt(hash.substring(8, 16), 16);
+                    gameResult = (hashDecimal % 50) + 1;
+                }
+
+                document.getElementById('resultOutput').textContent = `${gameType.charAt(0).toUpperCase() + gameType.slice(1)} Result: ${gameResult}`;
+                logPreviousResult(gameType, gameResult);
+            });
+        }
+
+        function logPreviousResult(gameType, result) {
+            const resultDiv = document.createElement('div');
+            resultDiv.classList.add('result');
+            resultDiv.textContent = `${gameType.charAt(0).toUpperCase() + gameType.slice(1)} Result: ${result}`;
+            document.getElementById('previousResults').prepend(resultDiv);
+        }
+    </script>
+</body>
+</html>
